@@ -4,6 +4,8 @@
 // Type definitions for Phaser CE
 // Project: https://github.com/photonstorm/phaser-ce
 
+interface MediaTrackConstraints {}
+
 declare module "phaser-ce" {
     export = Phaser;
 }
@@ -17879,18 +17881,20 @@ declare module Phaser {
         * @param captureAudio Controls if audio should be captured along with video in the video stream.
         * @param width The width is used to create the video stream. If not provided the video width will be set to the width of the webcam input source.
         * @param height The height is used to create the video stream. If not provided the video height will be set to the height of the webcam input source.
+        * @param videoHint Constraints and settings used to create the video stream.
         * @return This Video object for method chaining or false if the device doesn't support getUserMedia.
         */
-        startMediaStream(captureAudio?: boolean, width?: number, height?: number): Phaser.Video;
+        startMediaStream(captureAudio?: boolean | MediaTrackConstraints, width?: number, height?: number, videoHint?: MediaTrackConstraints): Phaser.Video;
 
         /**
         * Creates a new Video element from the given URL.
         * 
         * @param url The URL of the video.
         * @param autoplay Automatically start the video?
+        * @param crossOrigin The crossorigin parameter provides support for CORS
         * @return This Video object for method chaining.
         */
-        createVideoFromURL(url: string, autoplay?: boolean): Phaser.Video;
+        createVideoFromURL(url: string, autoplay?: boolean, crossOrigin?: string): Phaser.Video;
 
         /**
         * On some mobile browsers you cannot play a video until the user has explicitly touched the video to allow it.

@@ -7,7 +7,7 @@
 *
 * Phaser CE - https://github.com/photonstorm/phaser-ce
 *
-* v2.16.0 "2020-06-01" - Built: Mon Jun 01 2020 11:17:47
+* v2.16.0 "2020-06-01" - Built: Mon Jul 27 2020 18:05:33
 *
 * By Richard Davey http://www.photonstorm.com @photonstorm and Phaser CE contributors
 *
@@ -86056,16 +86056,19 @@ Phaser.Video.prototype = {
      * You can listen for this with the onChangeSource signal.
      *
      * @method Phaser.Video#startMediaStream
-     * @param {boolean} [captureAudio=false] - Controls if audio should be captured along with video in the video stream.
+     * @param {boolean|MediaTrackConstraints} [captureAudio=false] - Controls if audio should be captured along with video in the video stream.
      * @param {integer} [width] - The width is used to create the video stream. If not provided the video width will be set to the width of the webcam input source.
      * @param {integer} [height] - The height is used to create the video stream. If not provided the video height will be set to the height of the webcam input source.
+     * @param {boolean|MediaTrackConstraints} [captureVideo] - Constraints and settings used to create the video stream.
      * @return {Phaser.Video} This Video object for method chaining or false if the device doesn't support getUserMedia.
      */
-    startMediaStream: function (captureAudio, width, height)
+    startMediaStream: function (captureAudio, width, height, captureVideo)
     {
+
         if (captureAudio === undefined) { captureAudio = false; }
         if (width === undefined) { width = null; }
         if (height === undefined) { height = null; }
+        if (captureVideo === undefined) { captureVideo = true; }
 
         if (!this.game.device.getUserMedia)
         {
@@ -86105,17 +86108,24 @@ Phaser.Video.prototype = {
 
         this._timeOutID = window.setTimeout(this.getUserMediaTimeout.bind(this), this.timeout);
 
-        try
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia)
         {
-            navigator.getUserMedia(
-                { audio: captureAudio, video: true },
-                this.getUserMediaSuccess.bind(this),
-                this.getUserMediaError.bind(this)
-            );
+            navigator.mediaDevices.getUserMedia({ audio: captureAudio, video: captureVideo })
+                .then(this.getUserMediaSuccess.bind(this))
+                .catch(this.getUserMediaError.bind(this));
         }
-        catch (error)
+        else
         {
-            this.getUserMediaError(error);
+            try
+            {
+                    navigator.getUserMedia({ audio: captureAudio, video: captureVideo },
+                        this.getUserMediaSuccess.bind(this),
+                        this.getUserMediaError.bind(this));
+            }
+            catch (error)
+            {
+                this.getUserMediaError(error);
+            }
         }
 
         return this;
@@ -86242,9 +86252,10 @@ Phaser.Video.prototype = {
      * @method Phaser.Video#createVideoFromURL
      * @param {string} url - The URL of the video.
      * @param {boolean} [autoplay=false] - Automatically start the video?
+     * @param {string} crossOrigin - The crossorigin parameter provides support for CORS
      * @return {Phaser.Video} This Video object for method chaining.
      */
-    createVideoFromURL: function (url, autoplay)
+    createVideoFromURL: function (url, autoplay, crossOrigin)
     {
         if (autoplay === undefined) { autoplay = false; }
 
@@ -86260,6 +86271,11 @@ Phaser.Video.prototype = {
         if (autoplay)
         {
             this.video.setAttribute('autoplay', 'autoplay');
+        }
+
+        if (crossOrigin !== undefined)
+        {
+            this.video.crossOrigin = crossOrigin;
         }
 
         this.video.setAttribute('playsinline', 'playsinline');
